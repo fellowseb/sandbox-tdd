@@ -1,6 +1,8 @@
 use sandbox_tdd::currency_ops::Dollar;
 
 fn main() {
-    let mut d = Dollar::new(5);
-    d.times(2);
+    let d = Dollar::new(5);
+    const T: u32 = 2;
+    let product = d.times(T);
+    println!("{} times {} is {}", d, T, product)
 }
