@@ -1,1 +1,1 @@
-pub mod currency_ops;
+pub mod currency;
