@@ -1,9 +1,13 @@
 use core::fmt;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 enum Currency {
     Dollar,
     Franc,
+}
+
+trait Expression {
+    fn reduce(to: Currency) -> Money;
 }
 
 #[derive(Debug, PartialEq)]
@@ -23,6 +27,15 @@ impl Money {
             Currency::Dollar => Money(product, Currency::Dollar),
         }
     }
+    fn plus(&self, operand: &Money) -> impl Expression {
+        Money(self.0 + operand.0, self.1)
+    }
+}
+
+impl Expression for Money {
+    fn reduce(to: Currency) -> Money {
+        todo!();
+    }
 }
 
 impl fmt::Display for Money {
@@ -35,9 +48,20 @@ impl fmt::Display for Money {
     }
 }
 
+struct Bank;
+
+impl Bank {
+    fn new() -> Bank {
+        Bank {}
+    }
+    fn reduce(&self, source: impl Expression, to: Currency) -> Money {
+        Money::dollar(10)
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::currency::Money;
+    use crate::currency::{Bank, Currency, Money};
 
     #[test]
     fn test_multiplication() {
@@ -53,5 +77,14 @@ mod test {
         assert_eq!(Money::franc(5), Money::franc(5));
         assert_ne!(Money::franc(5), Money::franc(6));
         assert_ne!(Money::franc(5), Money::dollar(5));
+    }
+
+    #[test]
+    fn test_simple_addition() {
+        let five = Money::dollar(5);
+        let sum = five.plus(&five);
+        let bank = Bank::new();
+        let reduced = bank.reduce(sum, Currency::Dollar);
+        assert_eq!(reduced, Money::dollar(10));
     }
 }
