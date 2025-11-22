@@ -7,7 +7,7 @@ enum Currency {
 }
 
 trait Expression {
-    fn reduce(to: Currency) -> Money;
+    fn reduce(&self, to: Currency) -> Money;
 }
 
 #[derive(Debug, PartialEq)]
@@ -27,14 +27,16 @@ impl Money {
             Currency::Dollar => Money(product, Currency::Dollar),
         }
     }
+    // TODO: use operator overloading
+    // Returning a trait ? Or a Box<dyn Trait> ?
     fn plus(&self, operand: &Money) -> impl Expression {
         Money(self.0 + operand.0, self.1)
     }
 }
 
 impl Expression for Money {
-    fn reduce(to: Currency) -> Money {
-        todo!();
+    fn reduce(&self, to: Currency) -> Money {
+        Money(self.0, self.1)
     }
 }
 
@@ -55,13 +57,21 @@ impl Bank {
         Bank {}
     }
     fn reduce(&self, source: impl Expression, to: Currency) -> Money {
-        Money::dollar(10)
+        source.reduce(to)
+    }
+}
+
+struct Sum(Money, Money);
+
+impl Expression for Sum {
+    fn reduce(&self, to: Currency) -> Money {
+        Money(self.0.0 + self.1.0, to)
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::currency::{Bank, Currency, Money};
+    use crate::currency::{Bank, Currency, Money, Sum};
 
     #[test]
     fn test_multiplication() {
@@ -77,6 +87,31 @@ mod test {
         assert_eq!(Money::franc(5), Money::franc(5));
         assert_ne!(Money::franc(5), Money::franc(6));
         assert_ne!(Money::franc(5), Money::dollar(5));
+    }
+
+    // Can't implement in Rust
+    // #[test]
+    // fn test_plus_return_sum() {
+    //     let five = Money::dollar(5);
+    //     let result = five.plus(&five);
+    //     assert_eq!(five, sum.augend);
+    //     assert_eq!(five, sum.addend);
+    // }
+
+    #[test]
+    fn test_reduce_money() {
+        let money = Money::dollar(7);
+        let bank = Bank::new();
+        let reduced = bank.reduce(money, Currency::Dollar);
+        assert_eq!(reduced, Money::dollar(7));
+    }
+
+    #[test]
+    fn test_reduce_sum() {
+        let sum = Sum(Money::dollar(3), Money::dollar(4));
+        let bank = Bank::new();
+        let reduced = bank.reduce(sum, Currency::Dollar);
+        assert_eq!(reduced, Money::dollar(7));
     }
 
     #[test]
